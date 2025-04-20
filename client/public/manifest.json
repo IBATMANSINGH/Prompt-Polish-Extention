@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "PromptPolish",
+  "version": "1.0.0",
+  "description": "AI-powered tool that optimizes chat messages and website creation prompts",
+  "icons": {
+    "16": "https://cdn.jsdelivr.net/npm/@material-icons/svg@1.0.12/svg/auto_fix_high/materialsymbolsoutlined/auto_fix_high_wght700grad200_16px.svg",
+    "48": "https://cdn.jsdelivr.net/npm/@material-icons/svg@1.0.12/svg/auto_fix_high/materialsymbolsoutlined/auto_fix_high_wght700grad200_48px.svg",
+    "128": "https://cdn.jsdelivr.net/npm/@material-icons/svg@1.0.12/svg/auto_fix_high/materialsymbolsoutlined/auto_fix_high_wght700grad200_128px.svg"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "PromptPolish"
+  },
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage",
+    "clipboardWrite"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
