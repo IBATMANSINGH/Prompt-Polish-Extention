@@ -32,18 +32,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type,
         originalText: text,
         optimizedText,
-        timestamp: new Date().toISOString(),
-        style,
-        ...(type === "website" ? { 
-          websiteType: options?.websiteType,
-          designStyle: options?.designStyle
-        } : {})
+        timestamp: new Date(),
+        style: style || null,
+        websiteType: type === "website" ? options?.websiteType || null : null,
+        designStyle: type === "website" ? options?.designStyle || null : null
       };
       
       await storage.saveHistoryItem(historyItem);
       
       res.json({ optimizedText });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Optimization error:", error);
       res.status(500).json({ message: "Failed to optimize text", error: error.message });
     }
@@ -54,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const history = await storage.getHistory();
       res.json(history);
-    } catch (error) {
+    } catch (error: any) {
       console.error("History fetch error:", error);
       res.status(500).json({ message: "Failed to fetch history", error: error.message });
     }
@@ -65,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.clearHistory();
       res.json({ message: "History cleared successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("History clear error:", error);
       res.status(500).json({ message: "Failed to clear history", error: error.message });
     }
