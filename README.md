@@ -1,8 +1,5 @@
 # ✨ PromptPolish
 
-<p align="center">
-  <img src="docs/images/logo.png" alt="PromptPolish Logo" width="180">
-</p>
 
 <p align="center">
   <strong>AI-powered prompt optimization for ChatGPT, Claude, Bard and other LLMs</strong>
@@ -154,5 +151,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/yourusername">Your Name</a>
+  Made with ❤️ by <a href="https://github.com/IBATMANSINGH">Ankit Singh</a>
 </p>
