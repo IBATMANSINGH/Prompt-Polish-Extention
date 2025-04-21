@@ -1,3 +1,239 @@
+// AI platform detection
+const AI_PLATFORMS = [
+  {
+    name: 'ChatGPT',
+    hostname: 'chat.openai.com',
+    inputSelector: 'textarea[data-id="root"]',
+    submitSelector: 'button[data-testid="send-button"]',
+    type: 'general'
+  },
+  {
+    name: 'Claude',
+    hostname: 'claude.ai',
+    inputSelector: 'div[contenteditable="true"]',
+    submitSelector: 'button[aria-label="Send message"]',
+    type: 'general'
+  },
+  {
+    name: 'Bard',
+    hostname: 'bard.google.com',
+    inputSelector: 'textarea[placeholder="Enter a prompt here"]',
+    submitSelector: 'button[aria-label="Send"]',
+    type: 'general'
+  },
+  {
+    name: 'Bing Chat',
+    hostname: 'www.bing.com',
+    inputSelector: 'textarea#searchbox',
+    submitSelector: 'button#search_icon',
+    type: 'general'
+  },
+  {
+    name: 'Perplexity',
+    hostname: 'www.perplexity.ai',
+    inputSelector: 'div[contenteditable="true"]',
+    submitSelector: 'button[aria-label="Submit"]',
+    type: 'general'
+  },
+  {
+    name: 'MidJourney',
+    hostname: 'www.midjourney.com',
+    inputSelector: 'textarea[placeholder="Send a message"]',
+    submitSelector: 'button[type="submit"]',
+    type: 'general' // Could be customized for image generation
+  },
+  {
+    name: 'Hugging Face Chat',
+    hostname: 'huggingface.co',
+    inputSelector: 'div.chat-input-area textarea',
+    submitSelector: 'div.chat-input-area button[type="submit"]',
+    type: 'general'
+  },
+  {
+    name: 'Vercel AI Playground',
+    hostname: 'play.vercel.ai',
+    inputSelector: 'textarea.text-input',
+    submitSelector: 'button.send-button',
+    type: 'general'
+  },
+  {
+    name: 'WebChatGPT',
+    hostname: 'webchatgpt.io',
+    inputSelector: 'textarea[aria-label="Chat input"]',
+    submitSelector: 'button[aria-label="Send message"]',
+    type: 'general'
+  },
+  {
+    name: 'Phind',
+    hostname: 'www.phind.com',
+    inputSelector: 'textarea.search-input',
+    submitSelector: 'button.search-button',
+    type: 'general'
+  }
+];
+
+// Variable to store the current platform
+let currentPlatform = null;
+let isOptimizationEnabled = true; // Default to enabled
+
+// Function to detect the current AI platform
+function detectAIPlatform() {
+  const hostname = window.location.hostname;
+  return AI_PLATFORMS.find(platform => hostname.includes(platform.hostname));
+}
+
+// Function to create a toggle button for the optimization
+function createToggleButton() {
+  const button = document.createElement('button');
+  button.textContent = '✨ PromptPolish: ON';
+  button.style.position = 'fixed';
+  button.style.bottom = '20px';
+  button.style.left = '20px';
+  button.style.zIndex = '9999';
+  button.style.padding = '8px 12px';
+  button.style.borderRadius = '4px';
+  button.style.backgroundColor = '#22c55e';
+  button.style.color = 'white';
+  button.style.fontWeight = 'bold';
+  button.style.border = 'none';
+  button.style.cursor = 'pointer';
+  button.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+  button.style.fontSize = '14px';
+  
+  button.addEventListener('click', () => {
+    isOptimizationEnabled = !isOptimizationEnabled;
+    button.textContent = isOptimizationEnabled ? '✨ PromptPolish: ON' : '✨ PromptPolish: OFF';
+    button.style.backgroundColor = isOptimizationEnabled ? '#22c55e' : '#64748b';
+    showNotification(`PromptPolish ${isOptimizationEnabled ? 'enabled' : 'disabled'}`);
+  });
+  
+  document.body.appendChild(button);
+  return button;
+}
+
+// Initialize when the page loads
+window.addEventListener('load', () => {
+  currentPlatform = detectAIPlatform();
+  
+  if (currentPlatform) {
+    console.log(`PromptPolish: Detected ${currentPlatform.name}`);
+    createToggleButton();
+    setupInputInterception(currentPlatform);
+  }
+});
+
+// Function to intercept input on AI chat platforms
+function setupInputInterception(platform) {
+  // Use MutationObserver to wait for the input element to appear
+  const observer = new MutationObserver((mutations, obs) => {
+    const inputElement = document.querySelector(platform.inputSelector);
+    if (inputElement) {
+      // Input element found, set up the event listeners
+      setupInputEventListeners(inputElement, platform);
+      obs.disconnect(); // Stop observing once we've found and set up the input
+    }
+  });
+  
+  // Start observing the document with the configured parameters
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Set up event listeners for the input element
+function setupInputEventListeners(inputElement, platform) {
+  // Handle key press events (Enter key)
+  inputElement.addEventListener('keydown', async (event) => {
+    // Only intercept if Enter is pressed without Shift and optimization is enabled
+    if (event.key === 'Enter' && !event.shiftKey && isOptimizationEnabled) {
+      // Get the text from the input element
+      let text = '';
+      
+      if (inputElement.tagName.toLowerCase() === 'textarea') {
+        text = inputElement.value;
+      } else if (inputElement.getAttribute('contenteditable') === 'true') {
+        text = inputElement.textContent;
+      }
+      
+      if (text.trim()) {
+        event.preventDefault(); // Prevent the default Enter behavior
+        event.stopPropagation(); // Stop the event from propagating
+        
+        // Show a loading indicator
+        showNotification("Optimizing prompt...", "loading");
+        
+        // Optimize the text
+        try {
+          const optimizedText = await optimizeText(text, platform.type);
+          
+          // Update the input with the optimized text
+          if (inputElement.tagName.toLowerCase() === 'textarea') {
+            inputElement.value = optimizedText;
+          } else if (inputElement.getAttribute('contenteditable') === 'true') {
+            inputElement.textContent = optimizedText;
+          }
+          
+          // Notify the user
+          showNotification("Prompt optimized! Press Enter again to send.");
+          
+          // Focus on the input element
+          inputElement.focus();
+          
+          // Simulate an input event to trigger any necessary UI updates
+          inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (error) {
+          console.error("Optimization failed:", error);
+          showNotification("Failed to optimize prompt. Sending original.", "error");
+          
+          // Send the original text
+          setTimeout(() => {
+            // Dispatch the Enter key event to send the message
+            const enterEvent = new KeyboardEvent('keydown', {
+              key: 'Enter',
+              code: 'Enter',
+              keyCode: 13,
+              which: 13,
+              bubbles: true
+            });
+            inputElement.dispatchEvent(enterEvent);
+          }, 500);
+        }
+      }
+    }
+  });
+}
+
+// Function to optimize text using the background script
+function optimizeText(text, type = 'general') {
+  return new Promise((resolve, reject) => {
+    // Prepare data for the optimization request
+    const data = {
+      type: type,
+      text: text,
+      options: {}
+    };
+
+    // If it's a website type prompt, add default options
+    if (type === "website") {
+      data.options = {
+        websiteType: "business",
+        designStyle: "modern",
+        features: ["responsive", "seo"]
+      };
+    }
+
+    // Send to background script for API call
+    chrome.runtime.sendMessage({
+      action: "optimizeFromPopup",
+      data: data
+    }, (response) => {
+      if (response && response.success) {
+        resolve(response.result.optimizedText);
+      } else {
+        reject(new Error(response?.error || "Optimization failed"));
+      }
+    });
+  });
+}
+
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getSelectedText") {
@@ -68,9 +304,15 @@ function copyToClipboard(text) {
 
 // Helper function to show a notification
 function showNotification(message, type = "success") {
+  // Remove any existing notification with id 'promptpolish-notification'
+  const existingNotification = document.getElementById('promptpolish-notification');
+  if (existingNotification) {
+    document.body.removeChild(existingNotification);
+  }
+  
   // Create notification element
   const notification = document.createElement('div');
-  notification.textContent = message;
+  notification.id = 'promptpolish-notification';
   notification.style.position = 'fixed';
   notification.style.bottom = '20px';
   notification.style.right = '20px';
@@ -79,23 +321,68 @@ function showNotification(message, type = "success") {
   notification.style.zIndex = '999999';
   notification.style.fontSize = '14px';
   notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+  notification.style.display = 'flex';
+  notification.style.alignItems = 'center';
+  notification.style.gap = '8px';
   
-  // Set color based on type
-  if (type === "success") {
-    notification.style.backgroundColor = '#22c55e';
+  // Set color and content based on type
+  if (type === "loading") {
+    notification.style.backgroundColor = '#3b82f6'; // Blue for loading
     notification.style.color = 'white';
-  } else {
-    notification.style.backgroundColor = '#ef4444';
+    
+    // Add spinner for loading state
+    const spinner = document.createElement('div');
+    spinner.style.width = '16px';
+    spinner.style.height = '16px';
+    spinner.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+    spinner.style.borderRadius = '50%';
+    spinner.style.borderTopColor = 'white';
+    spinner.style.animation = 'promptpolish-spin 1s linear infinite';
+    
+    // Add keyframes for spinner animation
+    if (!document.getElementById('promptpolish-spinner-style')) {
+      const style = document.createElement('style');
+      style.id = 'promptpolish-spinner-style';
+      style.textContent = `
+        @keyframes promptpolish-spin {
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    notification.appendChild(spinner);
+  } else if (type === "success") {
+    notification.style.backgroundColor = '#22c55e'; // Green for success
+    notification.style.color = 'white';
+  } else if (type === "error") {
+    notification.style.backgroundColor = '#ef4444'; // Red for error
+    notification.style.color = 'white';
+  } else if (type === "info") {
+    notification.style.backgroundColor = '#64748b'; // Slate for info
     notification.style.color = 'white';
   }
   
-  // Add to page and remove after delay
+  // Add message text
+  const textSpan = document.createElement('span');
+  textSpan.textContent = message;
+  notification.appendChild(textSpan);
+  
+  // Add to page
   document.body.appendChild(notification);
-  setTimeout(() => {
-    notification.style.opacity = '0';
-    notification.style.transition = 'opacity 0.5s';
+  
+  // Remove after delay unless it's a loading notification
+  if (type !== "loading") {
     setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 500);
-  }, 3000);
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.5s';
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 500);
+    }, 3000);
+  }
+  
+  return notification;
 }

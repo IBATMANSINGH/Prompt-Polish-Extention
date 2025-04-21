@@ -16,7 +16,18 @@
     "contextMenus",
     "activeTab",
     "storage",
-    "clipboardWrite"
+    "clipboardWrite",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "https://*.openai.com/*",
+    "https://*.anthropic.com/*",
+    "https://*.google.com/*",
+    "https://*.bing.com/*",
+    "https://*.perplexity.ai/*",
+    "https://*.claude.ai/*",
+    "https://*.huggingface.co/*"
   ],
   "background": {
     "service_worker": "background.js",

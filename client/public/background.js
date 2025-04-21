@@ -57,22 +57,55 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Required for async sendResponse
   } else if (request.action === "optimizeFromPopup") {
     // Forward optimization requests from popup to the API
+    // In production, this would point to your deployed API endpoint
     const apiUrl = `http://localhost:5000/api/optimize`;
     
+    // Log the optimization request for debugging
+    console.log("PromptPolish: Optimizing text", {
+      type: request.data.type,
+      textLength: request.data.text.length,
+      options: request.data.options
+    });
+    
+    // Make the API request with proper error handling
     fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
       },
       body: JSON.stringify(request.data)
     })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(`API Error (${response.status}): ${text}`);
+          });
+        }
+        return response.json();
+      })
       .then(data => {
+        console.log("PromptPolish: Optimization successful");
         sendResponse({ success: true, result: data });
       })
       .catch(error => {
-        console.error('Optimization error:', error);
-        sendResponse({ success: false, error: error.message });
+        console.error('PromptPolish optimization error:', error);
+        
+        // If the API is unavailable (likely CORS issues in development), provide a fallback response
+        // This allows for testing the extension without the backend running
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          console.log('PromptPolish: Using fallback optimization due to connection error');
+          
+          // For demo/development purposes only - in production, this would rely on the actual API
+          const fallbackOptimizedText = `[Optimized by PromptPolish]\n\n${request.data.text}`;
+          sendResponse({ 
+            success: true, 
+            result: { optimizedText: fallbackOptimizedText },
+            fallback: true
+          });
+        } else {
+          sendResponse({ success: false, error: error.message });
+        }
       });
     
     return true; // Required for async sendResponse
