@@ -110,43 +110,134 @@ function detectAIPlatform() {
   return AI_PLATFORMS.find(platform => hostname.includes(platform.hostname));
 }
 
-// Function to create a toggle button for the optimization
+/**
+ * Creates a toggle button for enabling/disabling prompt optimization
+ * 
+ * @returns {HTMLElement} The created button element
+ */
 function createToggleButton() {
+  // Remove any existing button first
+  const existingButton = document.getElementById('promptpolish-toggle');
+  if (existingButton) {
+    document.body.removeChild(existingButton);
+  }
+
+  // Create the button container to ensure proper positioning
+  const buttonContainer = document.createElement('div');
+  buttonContainer.id = 'promptpolish-toggle-container';
+  buttonContainer.style.position = 'fixed';
+  buttonContainer.style.bottom = '20px';
+  buttonContainer.style.left = '20px';
+  buttonContainer.style.zIndex = '999999'; // Very high z-index to ensure visibility
+  buttonContainer.style.pointerEvents = 'auto'; // Ensure it receives click events
+  
+  // Create the actual button
   const button = document.createElement('button');
+  button.id = 'promptpolish-toggle';
   button.textContent = '✨ PromptPolish: ON';
-  button.style.position = 'fixed';
-  button.style.bottom = '20px';
-  button.style.left = '20px';
-  button.style.zIndex = '9999';
-  button.style.padding = '8px 12px';
-  button.style.borderRadius = '4px';
+  button.style.padding = '10px 16px';
+  button.style.borderRadius = '6px';
   button.style.backgroundColor = '#22c55e';
   button.style.color = 'white';
   button.style.fontWeight = 'bold';
   button.style.border = 'none';
   button.style.cursor = 'pointer';
-  button.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+  button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
   button.style.fontSize = '14px';
+  button.style.transition = 'all 0.3s ease';
+  button.style.userSelect = 'none';
+  button.style.fontFamily = 'Arial, sans-serif';
   
-  button.addEventListener('click', () => {
+  // Add hover effect
+  button.onmouseover = () => {
+    button.style.transform = 'translateY(-2px)';
+    button.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.25)';
+  };
+  
+  button.onmouseout = () => {
+    button.style.transform = 'translateY(0)';
+    button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+  };
+  
+  // Handle click event with explicit logging
+  button.onclick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('PromptPolish: Toggle button clicked');
     isOptimizationEnabled = !isOptimizationEnabled;
+    
+    // Update appearance
     button.textContent = isOptimizationEnabled ? '✨ PromptPolish: ON' : '✨ PromptPolish: OFF';
     button.style.backgroundColor = isOptimizationEnabled ? '#22c55e' : '#64748b';
+    
+    // Show notification
     showNotification(`PromptPolish ${isOptimizationEnabled ? 'enabled' : 'disabled'}`);
-  });
+    
+    // Save the state to storage for persistence across page reloads
+    try {
+      chrome.storage.local.set({ 'promptpolish_enabled': isOptimizationEnabled });
+      console.log('PromptPolish: Saved state to storage:', isOptimizationEnabled);
+    } catch (error) {
+      console.error('PromptPolish: Failed to save state:', error);
+    }
+    
+    return false; // Prevent any default behavior
+  };
   
-  document.body.appendChild(button);
+  // Add button to container and container to document
+  buttonContainer.appendChild(button);
+  document.body.appendChild(buttonContainer);
+  
+  // Log that the button was created
+  console.log('PromptPolish: Toggle button created');
+  
   return button;
 }
 
-// Initialize when the page loads
+/**
+ * Initialize the extension and set up UI elements
+ * 
+ * This function runs when the page loads and:
+ * 1. Detects if the current site is a supported AI platform
+ * 2. Loads saved preferences from storage
+ * 3. Creates the toggle button
+ * 4. Sets up input interception
+ */
 window.addEventListener('load', () => {
+  // Check if we're on a supported AI platform
   currentPlatform = detectAIPlatform();
   
   if (currentPlatform) {
     console.log(`PromptPolish: Detected ${currentPlatform.name}`);
-    createToggleButton();
-    setupInputInterception(currentPlatform);
+    
+    // Load saved settings from storage
+    try {
+      chrome.storage.local.get(['promptpolish_enabled'], (result) => {
+        // If we have a saved setting, use it
+        if (result.hasOwnProperty('promptpolish_enabled')) {
+          isOptimizationEnabled = result.promptpolish_enabled;
+          console.log('PromptPolish: Loaded saved state:', isOptimizationEnabled);
+        }
+        
+        // Create UI elements and set up functionality
+        const button = createToggleButton();
+        
+        // Update button appearance to match loaded state
+        if (!isOptimizationEnabled) {
+          button.textContent = '✨ PromptPolish: OFF';
+          button.style.backgroundColor = '#64748b';
+        }
+        
+        // Set up input interception
+        setupInputInterception(currentPlatform);
+      });
+    } catch (error) {
+      console.error('PromptPolish: Error loading saved state:', error);
+      // Continue with default state
+      createToggleButton();
+      setupInputInterception(currentPlatform);
+    }
   }
 });
 
