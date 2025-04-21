@@ -1,4 +1,26 @@
-// AI platform detection
+/**
+ * PromptPolish - AI Chat Interface Enhancement
+ * 
+ * This content script detects AI chat interfaces, adds a toggle button to the UI,
+ * and intercepts user inputs to optimize prompts before they're sent to the AI.
+ * 
+ * Features:
+ * - Auto-detection of popular AI chat platforms
+ * - Prompt interception on Enter key press
+ * - API-based prompt optimization
+ * - Visual feedback with notifications
+ * - Toggle button to enable/disable functionality
+ */
+
+/**
+ * Configuration for supported AI platforms
+ * Each platform configuration contains:
+ * - name: Display name of the platform
+ * - hostname: URL pattern to match for detection
+ * - inputSelector: CSS selector for the input element
+ * - submitSelector: CSS selector for the submit button
+ * - type: Type of optimization to apply ('general' or 'website')
+ */
 const AI_PLATFORMS = [
   {
     name: 'ChatGPT',
@@ -72,11 +94,17 @@ const AI_PLATFORMS = [
   }
 ];
 
-// Variable to store the current platform
-let currentPlatform = null;
+/**
+ * State variables
+ */
+let currentPlatform = null; // Store the detected AI platform
 let isOptimizationEnabled = true; // Default to enabled
 
-// Function to detect the current AI platform
+/**
+ * Detect the current AI platform based on the hostname
+ * 
+ * @returns {Object|undefined} The platform configuration object if detected, undefined otherwise
+ */
 function detectAIPlatform() {
   const hostname = window.location.hostname;
   return AI_PLATFORMS.find(platform => hostname.includes(platform.hostname));
