@@ -12,10 +12,11 @@ interface OptimizationOptionsProps {
 
 export default function OptimizationOptions({ selectedStyle, onSelectStyle }: OptimizationOptionsProps) {
   const options: OptimizationOption[] = [
-    { id: "clear", label: "Clear & Concise" },
-    { id: "detailed", label: "Detailed & Specific" },
+    { id: "concise", label: "Concise" },
     { id: "professional", label: "Professional" },
-    { id: "friendly", label: "Friendly" }
+    { id: "friendly", label: "Friendly" },
+    { id: "persuasive", label: "Persuasive" },
+    { id: "technical", label: "Technical" }
   ];
 
   const handleClick = (id: string) => {
