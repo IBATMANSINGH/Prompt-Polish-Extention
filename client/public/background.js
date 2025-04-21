@@ -1,3 +1,16 @@
+/**
+ * PromptPolish - Background Script
+ * 
+ * This background script handles:
+ * - Context menu setup for optimizing selected text
+ * - API communication for prompt optimization
+ * - Message passing between popup/content scripts and API
+ * 
+ * The script provides two main optimization paths:
+ * 1. Context menu-based optimization for selected text
+ * 2. API forwarding for optimization requests from content scripts and popup
+ */
+
 // Set up context menu items when the extension is installed
 chrome.runtime.onInstalled.addListener(() => {
   // Create a parent menu item
@@ -23,7 +36,13 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Handle context menu clicks
+/**
+ * Handle context menu clicks
+ * 
+ * When the user right-clicks on selected text and chooses one of our
+ * optimization options, this handler sends a message to the content script
+ * to process the selected text according to the chosen optimization type.
+ */
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "optimize-general") {
     // Send message to content script to handle general optimization
@@ -42,7 +61,15 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Listen for messages from content script or popup
+/**
+ * Message handler for communication between components
+ * 
+ * This listener handles two main types of messages:
+ * 1. "getSelectedText" - Gets the selected text from the active tab
+ * 2. "optimizeFromPopup" - Forwards optimization requests to the API server
+ * 
+ * The listener sets up proper error handling and fallbacks for API failures.
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getSelectedText") {
     // Get the active tab and send a message to get selected text

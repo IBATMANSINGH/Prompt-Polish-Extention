@@ -1,7 +1,20 @@
+/**
+ * PromptPolish Optimization Engine
+ * 
+ * This module provides text optimization services using the OpenRouter API
+ * to access advanced AI models like Claude 3.7 Sonnet. It contains two main functions:
+ * 
+ * 1. optimizeText - For general text optimization with style options
+ * 2. optimizeWebsitePrompt - Specifically for enhancing website creation prompts
+ * 
+ * Each function uses carefully engineered system prompts to guide the AI
+ * in producing high-quality optimizations tailored to the user's needs.
+ */
+
 // Using fetch for OpenRouter API
 import fetch from "node-fetch";
 
-// Use OpenRouter's default model selection (which includes GPT models)
+// Use Claude 3.7 Sonnet via OpenRouter (newest model as of April 2025)
 const DEFAULT_MODEL = "anthropic/claude-3-7-sonnet-20250219";
 
 // OpenRouter API URL
@@ -20,6 +33,14 @@ const headers = {
 
 /**
  * Optimize general text using OpenRouter API with advanced prompt engineering
+ * 
+ * This function takes any text input and enhances it using AI-powered optimization.
+ * It can apply different writing styles based on the provided style parameter.
+ * 
+ * @param {string} text - The original text to optimize
+ * @param {string} [style] - Optional style to apply (professional, concise, friendly, persuasive, technical)
+ * @returns {Promise<string>} A promise that resolves to the optimized text
+ * @throws {Error} If the API request fails or returns an error
  */
 export async function optimizeText(text: string, style?: string): Promise<string> {
   try {
@@ -98,6 +119,18 @@ Return ONLY the improved text without explanations, notes, or meta-commentary. D
 
 /**
  * Optimize website creation prompts using OpenRouter API with advanced prompt engineering
+ * 
+ * This specialized function enhances prompts intended for website creation by adding
+ * structured details, technical specifications, and best practices based on the provided
+ * website type, design style, and feature requirements.
+ * 
+ * @param {string} text - The original website description to enhance
+ * @param {Object} [options] - Optional configuration for the website optimization
+ * @param {string} [options.websiteType] - Type of website (business, portfolio, ecommerce, blog, personal)
+ * @param {string} [options.designStyle] - Design style (modern, minimalist, colorful, corporate, creative)
+ * @param {string[]} [options.features] - Array of features to include (responsive, seo, contact-form, etc.)
+ * @returns {Promise<string>} A promise that resolves to the optimized website creation prompt
+ * @throws {Error} If the API request fails or returns an error
  */
 export async function optimizeWebsitePrompt(
   text: string, 
